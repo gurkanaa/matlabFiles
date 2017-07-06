@@ -60,5 +60,6 @@ longData=dummy(1:10:end);
         x=cos(2*pi*frequency*tLong-phase);
         residue=residue-corr*x/(x*x');
     end
+    asdasdasdasdasdasd
 
     
