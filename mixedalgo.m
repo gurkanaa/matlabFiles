@@ -30,7 +30,9 @@ longData=dummy(1:10:end);
     tShort=(0:frameLength-1)/fs;
     phaseShiftCoef=2*pi*4*frameLength/fs;
     parameters=[];
-    while(maxOfResidue>db2mag(-70)*maxOfFft) 
+    tic;
+    while(maxOfResidue>db2mag(-60)*maxOfFft) 
+%     for i=1:19
         if(f(index)~=0)
             fLow=f(index)-fs/(20*frameLength);
             fHigh=f(index)+fs/(20*frameLength);
@@ -52,6 +54,7 @@ longData=dummy(1:10:end);
         f = (fs/10)*(0:(frameLength/2))/frameLength;
         [maxOfResidue,index]=max(P1);
     end
+    toc;
     
         
         
