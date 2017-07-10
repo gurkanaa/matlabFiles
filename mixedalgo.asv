@@ -14,32 +14,54 @@ dummy=reshape(data(:,1:10),1,10*frameLength);
 longData=dummy(1:10:end);
 
  
-%peak detection
 
- 
-    %taking fft of both signals
+    %taking fft of long signal
     Y = fft(longData);
     P2 = abs(Y/frameLength);
     P1 = P2(1:frameLength/2+1);
     P1(2:end-1) = 2*P1(2:end-1);
     f = (fs/10)*(0:(frameLength/2))/frameLength;
-    [dummy,index]=max(P1);
-    %%derivative    
-    klm=P1(1:end-1)-P1(2:end);
-    %detecting peaks
-    dm=[];
-    peaks=[];
-    for i=1:length(klm)
-        if(i==1)
-            if(klm(i)>db2mag(-70)*max(P1))
-                dm=[dm;i];
-                peaks=[peaks;P1(i)];
-            end
-        elseif(((klm(i-1)<0)&&klm(i)>0)&&klm(i)>db2mag(-70)*max(P1)&&abs(klm(i-1))>db2mag(-70)*max(P1))
-            dm=[dm;i];
-            peaks=[peaks;P1(i)];
+    [maxOfFft,index]=max(P1);
+    maxOfResidue=maxOfFft;
+    residueLong=longData;
+    residueShort=shortData;
+    %%derivative
+    tLong=(0:frameLength-1)*10/fs;
+    tShort=(0:frameLength-1)/fs;
+    phaseShiftCoef=2*pi*frameLength/fs;
+    while(maxOfResidue<db2mag(-60)*max(P1)) 
+        if(f(index)~=0)
+            fLow=f(index)-fs/(20*frameLength);
+            fHigh=f(index)+fs/(20*frameLength);
+            [frequency,phase,corr]=bisectionMethod(residue,fLow,fHigh,fs/10,0,0.01);
+        else
+            frequency=0;
+            phase=0;
+            corr=sum(residue);
         end
-    end
+        parameters=[parameters;frequency phase corr];
+        xLong=cos(2*pi*frequency*tLong-phase);
+        xShort=cos(2*pi*frequency*tShort-phase+phaseShiftCoef*frequency);
+        residueLong=residueLong-corr*x/(xLong*xLong');
+        r
+        
+        
+        
+%     klm=P1(1:end-1)-P1(2:end);
+    %detecting peaks
+%     dm=[];
+%     peaks=[];
+%     for i=1:length(klm)
+%         if(i==1)
+%             if(P1(i)>db2mag(-80)*max(P1))
+%                 dm=[dm;i];
+%                 peaks=[peaks;P1(i)];
+%             end
+%         elseif(((klm(i-1)<0)&&klm(i)>0)&&P1(i)>db2mag(-80)*max(P1))
+%             dm=[dm;i];
+%             peaks=[peaks;P1(i)];
+%         end
+%     end
     %peaks order
     [magnitudes,orderOfPeaks]=sort(peaks,'descend');
     %findind exact frequency in order
@@ -47,15 +69,17 @@ longData=dummy(1:10:end);
     parameters=[];
     for i=1:length(dm)
        if(f(dm(orderOfPeaks(i)))~=0)
-            fLow=f(dm(orderOfPeaks(i)))-fs/(20*frameLength);
-            fHigh=f(dm(orderOfPeaks(i)))+fs/(20*frameLength);
-            [frequency,phase,corr]=bisectionMethod(residue,fLow,fHigh,fs/10,0,0.01);
-            tLong=(0:frameLength-1)*10/fs;
+           fLow=f(dm(orderOfPeaks(i)))-fs/(20*frameLength);
+           fHigh=f(dm(orderOfPeaks(i)))+fs/(20*frameLength);
+           [frequency,phase,corr]=bisectionMethod(residue,fLow,fHigh,fs/10,0,0.01);
+           tLong=(0:frameLength-1)*10/fs;
        else
-           
+           frequency=0;
+           phase=0;
+           corr=sum(residue);
+       end
         parameters=[parameters;frequency phase corr];
         x=cos(2*pi*frequency*tLong-phase);
         residue=residue-corr*x/(x*x');
     end
-
     
