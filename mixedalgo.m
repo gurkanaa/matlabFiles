@@ -16,6 +16,7 @@ longData=dummy(1:10:end);
  
 
     %taking fft of long signal
+    %low frequency fits
     Y = fft(longData);
     P2 = abs(Y/frameLength);
     P1 = P2(1:frameLength/2+1);
@@ -31,31 +32,40 @@ longData=dummy(1:10:end);
     phaseShiftCoef=2*pi*4*frameLength/fs;
     parameters=[];
     tic;
+    energyOfSignal=shortData'*shortData;
     while(maxOfResidue>db2mag(-60)*maxOfFft) 
 %     for i=1:19
         if(f(index)~=0)
             fLow=f(index)-fs/(20*frameLength);
             fHigh=f(index)+fs/(20*frameLength);
-            [frequency,phase,corr]=bisectionMethod(residueLong,fLow,fHigh,fs/10,0,0.01);
+            [frequency,phase,corr]=bisectionMethod(residueLong',fLow,fHigh,fs/10,0,0.01);
         else
             frequency=0;
             phase=0;
             corr=sum(residueLong);
         end
-        parameters=[parameters;frequency phase corr];
         xLong=cos(2*pi*frequency*tLong-phase);
         xShort=cos(2*pi*frequency*tShort-phase+phaseShiftCoef*frequency);
         residueLong=residueLong-corr*xLong/(xLong*xLong');
         residueShort=residueShort-corr*xShort/(xLong*xLong');
+        parameters=[parameters;frequency phase-phaseShiftCoef*frequency corr/sqrt(xShort*xShort')];        
         Y = fft(residueLong);
         P2 = abs(Y/frameLength);
         P1 = P2(1:frameLength/2+1);
         P1(2:end-1) = 2*P1(2:end-1);
         f = (fs/10)*(0:(frameLength/2))/frameLength;
         [maxOfResidue,index]=max(P1);
-    end
+    end    
     toc;
-    
+    %standard MP
+    tic;
+    residueShort=residueShort';
+    alpha= 0;%[0,0.4,0.8,1.2,1.6,2.0,2.4];
+    gamma=[];%1:5;
+    freqResolution=1;
+    firstWeight=parameters(1,3);
+    [numberOfAtoms,energyOfResidue,windowArray,indexArray,frequencyArray,phaseArray,weightArray,residue]=findAllAtoms(residueShort,fs,energyOfSignal,50,alpha,gamma,freqResolution,firstWeight);
+    toc;
         
         
         

@@ -6,8 +6,8 @@ if(f==0)
 else
     t=ts:ts+length(data)-1;
     t=t/fs;
-    corrcos=cos(2*pi*f*t)*data';
-    corrsin=sin(2*pi*f*t)*data';
+    corrcos=cos(2*pi*f*t)*data;
+    corrsin=sin(2*pi*f*t)*data;
     if (corrcos > 0)
         phase = atan(corrsin / corrcos);
     else
